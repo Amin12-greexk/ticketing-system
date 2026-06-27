@@ -1,24 +1,42 @@
-version: "3.9"
-
 services:
-  postgres:
-
-    image: postgres:17
-
-    container_name: ticketing-db
-
-    restart: always
-
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ticketing-app
+    restart: unless-stopped
     ports:
-      - "5433:5432"
-
+      - "${APP_PORT:-3000}:3000"
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ticketing
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-ticketing}
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - ticketing-network
 
+  postgres:
+    image: postgres:17-alpine
+    container_name: ticketing-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-ticketing}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-ticketing}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ticketing-network
 
 volumes:
   postgres_data:
+
+networks:
+  ticketing-network:
+    driver: bridge
