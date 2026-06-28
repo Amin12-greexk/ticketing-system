@@ -5,8 +5,8 @@ services:
       dockerfile: Dockerfile
     container_name: ticketing-app
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-4000}:3000"
+    expose:
+      - "3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-ticketing}
       NODE_ENV: production
