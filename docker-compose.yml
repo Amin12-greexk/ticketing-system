@@ -15,6 +15,7 @@ services:
         condition: service_healthy
     networks:
       - ticketing-network
+      - dokploy-network
 
   postgres:
     image: postgres:17-alpine
@@ -40,3 +41,5 @@ volumes:
 networks:
   ticketing-network:
     driver: bridge
+  dokploy-network:
+    external: true
